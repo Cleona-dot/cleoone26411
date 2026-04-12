@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cleoone26411</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    }
+
+    /* ───── 页面切换 ───── */
+    .page { display: none; }
+    .page.active { display: flex; }
+
+    /* ══════════════════════════════
+       登录页
+    ══════════════════════════════ */
+    #loginPage {
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .form-group { margin-bottom: 12px; }
+
+    label {
+      display: block;
+      font-size: 17px;
+      font-weight: 500;
+      color: #1d1d1f;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      height: 46px;
+      background: #d4d4d4;
+      border: none;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-size: 15px;
+      color: #1d1d1f;
+      font-family: inherit;
+      outline: none;
+      transition: background 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    input::placeholder { color: #8a8a8e; font-size: 14px; }
+    input:focus { background: #cacaca; box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
+    input.error-field { box-shadow: 0 0 0 3px rgba(255,59,48,0.2); }
+
+    .error-msg {
+      display: none;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #ff3b30;
+    }
+    .error-msg.show { display: block; }
+
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      background: #1d1d1f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 18px;
+      transition: background 0.15s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .submit-btn:hover { background: #2d2d2f; }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn.loading { pointer-events: none; opacity: 0.7; }
+    .submit-btn .btn-text { transition: opacity 0.2s; }
+    .submit-btn .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+    }
+    .submit-btn.loading .btn-text { opacity: 0; }
+    .submit-btn.loading .spinner { display: block; }
+    @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+    /* ══════════════════════════════
+       首页
+    ══════════════════════════════ */
+    #homePage {
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-container {
+      text-align: center;
+      padding: 48px 40px;
+      max-width: 500px;
+      width: 100%;
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .site-name-home {
+      font-family: 'Dancing Script', cursive;
+      font-size: 48px;
+      color: #1d1d1f;
+      margin-bottom: 40px;
+    }
+
+    .home-container h1 {
+      font-size: 34px;
+      font-weight: 300;
+      color: #1d1d1f;
+      letter-spacing: -1px;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+
+    .home-container p {
+      font-size: 15px;
+      color: #6e6e73;
+      font-weight: 300;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .start-btn {
+      height: 48px;
+      padding: 0 40px;
+      background: #1d1d1f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .start-btn:hover { background: #2d2d2f; }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ══════════════════════════════
+       创作页
+    ══════════════════════════════ */
+    #workspacePage {
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* 顶部导航 */
+    .ws-header {
+      width: 100%;
+      background: #1d1d1f;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ws-header-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: 26px;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    /* 主体区域 */
+    .ws-body {
+      display: flex;
+      flex: 1;
+      padding: 32px 40px;
+      gap: 32px;
+      align-items: flex-start;
+    }
+
+    /* 左侧按钮列 */
+    .ws-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex-shrink: 0;
+      width: 200px;
+      padding-top: 8px;
+    }
+
+    .category-btn {
+      height: 52px;
+      background: #d4d4d4;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 400;
+      color: #1d1d1f;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s, transform 0.1s;
+      padding: 0 16px;
+    }
+
+    .category-btn:hover { background: #c8c8c8; }
+    .category-btn:active { transform: scale(0.97); }
+
+    .category-btn .eng {
+      font-family: 'Dancing Script', cursive;
+      font-size: 17px;
+      color: #6e6e73;
+    }
+
+    /* 右侧预览区 */
+    .ws-preview-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ws-preview-label {
+      font-family: 'Dancing Script', cursive;
+      font-size: 18px;
+      color: #8a8a8e;
+      text-align: right;
+    }
+
+    .ws-canvas {
+      width: 100%;
+      aspect-ratio: 3/4;
+      max-height: 480px;
+      background: white;
+      border-radius: 16px;
+      border: 1px solid #d0d0d0;
+    }
+
+    /* 底部按钮 */
+    .ws-footer {
+      padding: 24px 40px 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .generate-btn {
+      height: 52px;
+      padding: 0 56px;
+      background: #1d1d1f;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .generate-btn:hover { background: #2d2d2f; }
+    .generate-btn:active { transform: scale(0.98); }
+
+    /* ══════════════════════════════
+       上传弹窗
+    ══════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: #e8e8e8;
+      border-radius: 20px;
+      padding: 36px 36px 32px;
+      width: 380px;
+      animation: fadeUp 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 13px;
+      color: #6e6e73;
+      margin-bottom: 24px;
+    }
+
+    .upload-zone {
+      width: 100%;
+      height: 160px;
+      background: #d4d4d4;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      gap: 10px;
+      transition: background 0.15s;
+      border: 2px dashed #b0b0b5;
+    }
+    .upload-zone:hover { background: #cacaca; }
+
+    .upload-zone svg { width: 32px; height: 32px; stroke: #6e6e73; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .upload-zone span { font-size: 14px; color: #6e6e73; }
+
+    .upload-input { display: none; }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .modal-cancel {
+      flex: 1;
+      height: 44px;
+      background: #d4d4d4;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1d1d1f;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .modal-cancel:hover { background: #c8c8c8; }
+
+    .modal-confirm {
+      flex: 1;
+      height: 44px;
+      background: #1d1d1f;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      color: white;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .modal-confirm:hover { background: #2d2d2f; }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #b0b0b5;
+      padding-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ 登录页 ══ -->
+  <div class="page active" id="loginPage">
+    <div class="login-card">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="账号" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="密码" autocomplete="current-password" />
+      </div>
+      <div class="error-msg" id="errorMsg">账号或密码错误，请重试</div>
+      <button class="submit-btn" id="loginBtn" onclick="handleLogin()">
+        <span class="btn-text">Submit</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ 首页 ══ -->
+  <div class="page" id="homePage">
+    <div class="home-container">
+      <div class="site-name-home">Cleoone26411</div>
+      <h1>你的专属<br>穿搭创作台</h1>
+      <p>上传服装图片，一键去背景<br>自由排版，生成你的穿搭图</p>
+      <button class="start-btn" onclick="showPage('workspacePage')">开始创作</button>
+    </div>
+  </div>
+
+  <!-- ══ 创作页 ══ -->
+  <div class="page" id="workspacePage">
+    <div class="ws-header">
+      <span class="ws-header-title">Cleoone26411</span>
+    </div>
+
+    <div class="ws-body">
+      <!-- 左侧分类按钮 -->
+      <div class="ws-sidebar">
+        <button class="category-btn" onclick="openModal('上装')">
+          <span class="eng">Tops</span> 上装
+        </button>
+        <button class="category-btn" onclick="openModal('下装')">
+          <span class="eng">Bottoms</span> 下装
+        </button>
+        <button class="category-btn" onclick="openModal('袜子')">
+          <span class="eng">Socks</span> 袜子
+        </button>
+        <button class="category-btn" onclick="openModal('包包')">
+          <span class="eng">Bags</span> 包包
+        </button>
+        <button class="category-btn" onclick="openModal('首饰')">
+          <span class="eng">Accessories</span> 首饰
+        </button>
+      </div>
+
+      <!-- 右侧预览画布 -->
+      <div class="ws-preview-wrap">
+        <div class="ws-preview-label">Preview Workspace 预览工作区</div>
+        <div class="ws-canvas" id="wsCanvas"></div>
+      </div>
+    </div>
+
+    <div class="ws-footer">
+      <button class="generate-btn" onclick="generateOutfit()">生成作品</button>
+    </div>
+
+    <div class="footer-note">Cleoone26411 · All rights reserved</div>
+  </div>
+
+  <!-- ══ 上传弹窗 ══ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">上传图片</div>
+      <div class="modal-sub" id="modalSub">请上传你的上装图片</div>
+      <div class="upload-zone" onclick="document.getElementById('uploadInput').click()">
+        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+        <span>点击上传图片</span>
+      </div>
+      <input type="file" id="uploadInput" class="upload-input" accept="image/*" onchange="handleUpload(event)" />
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-confirm" onclick="closeModal()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentCategory = '';
+
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function handleLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('loginBtn');
+      const u = document.getElementById('username');
+      const p = document.getElementById('password');
+
+      errorMsg.classList.remove('show');
+      u.classList.remove('error-field');
+      p.classList.remove('error-field');
+
+      if (username === 'cleoone' && password === 'iveheardofher') {
+        btn.classList.add('loading');
+        setTimeout(() => {
+          btn.classList.remove('loading');
+          showPage('homePage');
+        }, 800);
+      } else {
+        u.classList.add('error-field');
+        p.classList.add('error-field');
+        errorMsg.classList.add('show');
+        setTimeout(() => {
+          u.classList.remove('error-field');
+          p.classList.remove('error-field');
+        }, 2000);
+      }
+    }
+
+    function openModal(category) {
+      currentCategory = category;
+      document.getElementById('modalTitle').textContent = '上传' + category + '图片';
+      document.getElementById('modalSub').textContent = '请上传你的' + category + '图片，支持 JPG / PNG';
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+      document.getElementById('uploadInput').value = '';
+    }
+
+    function handleUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      // 后续接入AI去背景，这里先预留
+      alert('已选择：' + file.name + '\n（AI去背景功能即将接入）');
+    }
+
+    function generateOutfit() {
+      alert('生成作品功能即将上线！');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
+        handleLogin();
+      }
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
