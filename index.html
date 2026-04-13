@@ -679,7 +679,8 @@ async function confirmUpload(){
         console.log('part'+i+' type:',p.text?'text':'inline_data',p.inline_data?.mime_type||p.text?.substring(0,100));
       });
       for(const part of data.candidates[0].content.parts){
-        const mime=part.inline_data?.mimeType||part.inline_data?.mime_type;
+  const id=part.inlineData||part.inline_data;
+  const mime=id?.mimeType||id?.mime_type;
         if(mime?.startsWith('image')){
           imgData=part.inline_data.data;imgMime=mime;break;
         }
