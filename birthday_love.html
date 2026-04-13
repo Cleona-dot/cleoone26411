@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>💛 给你的小惊喜</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Georgia', 'STSong', '宋体', serif; }
+
+  .page {
+    display: none;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .page.active { display: flex; }
+
+  .page-warm { background: #FFF3C4; }
+  .page-pink  { background: #FFD6E0; }
+
+  /* 鸡蛋饼背景 */
+  .egg-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(88vw, 460px);
+    opacity: 0.28;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .question-text {
+    font-size: clamp(1.2rem, 5.5vw, 1.75rem);
+    font-weight: 900;
+    color: #E07000;
+    text-shadow: 1px 1px 0 #fff8dc;
+    line-height: 1.65;
+    margin-bottom: 1.8rem;
+  }
+
+  .congrats-text {
+    font-size: clamp(0.95rem, 3.8vw, 1.15rem);
+    font-weight: 700;
+    color: #E07000;
+    margin-bottom: 0.5rem;
+  }
+
+  .answer-input {
+    background: #FFFBE6;
+    border: 2.5px solid #F5C842;
+    border-radius: 14px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.1rem;
+    font-family: 'Georgia', '宋体', serif;
+    font-weight: 700;
+    color: #7a4500;
+    text-align: center;
+    width: 100%;
+    max-width: 280px;
+    outline: none;
+    box-shadow: 0 2px 10px #f5c84233;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .answer-input:focus { border-color: #E07000; }
+  .answer-input::placeholder { color: #c8a44a; font-weight: 400; }
+
+  .submit-btn {
+    margin-top: 1.3rem;
+    padding: 0.65rem 2.4rem;
+    background: #E07000;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-family: 'Georgia', '宋体', serif;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 12px #e0700033;
+    transition: background 0.2s, transform 0.1s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .submit-btn:active { transform: scale(0.96); background: #b85d00; }
+
+  .error-msg {
+    color: #d63000;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-top: 0.7rem;
+    min-height: 1.3rem;
+  }
+
+  /* 选项 */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .choice-btn {
+    background: #FFFBE6;
+    border: 2.5px solid #F5C842;
+    border-radius: 14px;
+    padding: 0.8rem 0.5rem;
+    font-size: 1rem;
+    font-family: 'Georgia', '宋体', serif;
+    font-weight: 700;
+    color: #7a4500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .choice-btn:active { transform: scale(0.96); }
+  .choice-btn.wrong {
+    background: #ffe0e0;
+    border-color: #d63000;
+    color: #d63000;
+    animation: shake 0.4s;
+  }
+  .choice-btn.correct {
+    background: #ffe2a0;
+    border-color: #E07000;
+    color: #7a4500;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    60% { transform: translateX(8px); }
+  }
+
+  /* 粉色页面文字 */
+  .love-text {
+    font-size: clamp(1.45rem, 6.5vw, 2.1rem);
+    font-weight: 900;
+    color: #d4477a;
+    line-height: 2;
+    text-align: center;
+    padding: 1.5rem 2rem;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 1.1s ease, transform 1.1s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .love-text.shown { opacity: 1; transform: translateY(0); }
+
+  .tap-hint {
+    position: absolute;
+    bottom: 2.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.82rem;
+    color: #d4477a99;
+    z-index: 2;
+    white-space: nowrap;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:0.55; } 50% { opacity:1; } }
+
+  /* 粉色页背景装饰 */
+  .heart-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(88vw, 440px);
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page page-warm active" id="page1">
+  <svg class="egg-bg" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="200" cy="225" rx="188" ry="148" fill="#C49030"/>
+    <ellipse cx="200" cy="218" rx="180" ry="140" fill="#D4A843"/>
+    <ellipse cx="200" cy="212" rx="170" ry="132" fill="#E8BE60"/>
+    <ellipse cx="200" cy="207" rx="160" ry="124" fill="#F0CE78"/>
+    <ellipse cx="200" cy="225" rx="188" ry="148" fill="none" stroke="#9A6010" stroke-width="7" stroke-dasharray="14,9" opacity="0.5"/>
+    <ellipse cx="200" cy="198" rx="92" ry="73" fill="#FFFDF5" opacity="0.97"/>
+    <ellipse cx="155" cy="220" rx="32" ry="23" fill="#FFFDF5" opacity="0.75"/>
+    <ellipse cx="245" cy="217" rx="30" ry="21" fill="#FFFDF5" opacity="0.75"/>
+    <circle cx="200" cy="188" r="40" fill="#F5A800"/>
+    <circle cx="200" cy="188" r="33" fill="#FFB800"/>
+    <circle cx="200" cy="188" r="25" fill="#FFCF00"/>
+    <circle cx="192" cy="180" r="8" fill="#FFE570" opacity="0.72"/>
+    <circle cx="125" cy="255" r="5" fill="#5A9E3C" opacity="0.85"/>
+    <circle cx="142" cy="270" r="4" fill="#5A9E3C" opacity="0.75"/>
+    <circle cx="260" cy="262" r="5" fill="#5A9E3C" opacity="0.85"/>
+    <circle cx="277" cy="248" r="4" fill="#5A9E3C" opacity="0.75"/>
+    <circle cx="160" cy="284" r="3" fill="#5A9E3C" opacity="0.65"/>
+    <circle cx="250" cy="281" r="3" fill="#5A9E3C" opacity="0.65"/>
+    <circle cx="195" cy="295" r="3" fill="#5A9E3C" opacity="0.55"/>
+    <ellipse cx="138" cy="295" rx="20" ry="9" fill="#9A6010" opacity="0.22" transform="rotate(-22 138 295)"/>
+    <ellipse cx="270" cy="288" rx="16" ry="7" fill="#9A6010" opacity="0.18" transform="rotate(18 270 288)"/>
+    <ellipse cx="205" cy="315" rx="13" ry="5" fill="#9A6010" opacity="0.15"/>
+  </svg>
+
+  <div class="content">
+    <div class="question-text">你最爱的人是谁？</div>
+    <input class="answer-input" id="input1" type="text" placeholder="输入名字…" autocomplete="off"/>
+    <div class="error-msg" id="err1"></div>
+    <button class="submit-btn" onclick="checkPage1()">确认 ✦</button>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page page-warm" id="page2">
+  <svg class="egg-bg" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="200" cy="225" rx="188" ry="148" fill="#C49030"/>
+    <ellipse cx="200" cy="218" rx="180" ry="140" fill="#D4A843"/>
+    <ellipse cx="200" cy="212" rx="170" ry="132" fill="#E8BE60"/>
+    <ellipse cx="200" cy="207" rx="160" ry="124" fill="#F0CE78"/>
+    <ellipse cx="200" cy="225" rx="188" ry="148" fill="none" stroke="#9A6010" stroke-width="7" stroke-dasharray="14,9" opacity="0.5"/>
+    <ellipse cx="200" cy="198" rx="92" ry="73" fill="#FFFDF5" opacity="0.97"/>
+    <ellipse cx="155" cy="220" rx="32" ry="23" fill="#FFFDF5" opacity="0.75"/>
+    <ellipse cx="245" cy="217" rx="30" ry="21" fill="#FFFDF5" opacity="0.75"/>
+    <circle cx="200" cy="188" r="40" fill="#F5A800"/>
+    <circle cx="200" cy="188" r="33" fill="#FFB800"/>
+    <circle cx="200" cy="188" r="25" fill="#FFCF00"/>
+    <circle cx="192" cy="180" r="8" fill="#FFE570" opacity="0.72"/>
+    <circle cx="125" cy="255" r="5" fill="#5A9E3C" opacity="0.85"/>
+    <circle cx="142" cy="270" r="4" fill="#5A9E3C" opacity="0.75"/>
+    <circle cx="260" cy="262" r="5" fill="#5A9E3C" opacity="0.85"/>
+    <circle cx="277" cy="248" r="4" fill="#5A9E3C" opacity="0.75"/>
+    <ellipse cx="138" cy="295" rx="20" ry="9" fill="#9A6010" opacity="0.22" transform="rotate(-22 138 295)"/>
+    <ellipse cx="270" cy="288" rx="16" ry="7" fill="#9A6010" opacity="0.18" transform="rotate(18 270 288)"/>
+  </svg>
+
+  <div class="content">
+    <div class="congrats-text">🎉 恭喜你答对了！</div>
+    <div class="question-text" style="font-size:clamp(1rem,4.2vw,1.4rem);">下一题：你觉得你在她心里是什么样的？</div>
+    <div class="choices">
+      <button class="choice-btn" id="choiceA" onclick="checkChoice('A')">A. 淘气</button>
+      <button class="choice-btn" id="choiceB" onclick="checkChoice('B')">B. 可爱</button>
+      <button class="choice-btn" id="choiceC" onclick="checkChoice('C')">C. 闹腾</button>
+      <button class="choice-btn" id="choiceD" onclick="checkChoice('D')">D. 珍贵</button>
+    </div>
+    <div class="error-msg" id="err2"></div>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page page-pink" id="page3" onclick="goPage4()">
+  <svg class="heart-bg" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200 320 C200 320 30 210 30 110 C30 55 75 20 120 20 C155 20 185 40 200 65 C215 40 245 20 280 20 C325 20 370 55 370 110 C370 210 200 320 200 320Z" fill="#d4477a"/>
+    <path d="M200 285 C200 285 60 190 60 108 C60 68 92 42 125 42 C157 42 182 60 200 85 C218 60 243 42 275 42 C308 42 340 68 340 108 C340 190 200 285 200 285Z" fill="#e87aaa"/>
+    <circle cx="140" cy="90" r="22" fill="#f0a0c0" opacity="0.6"/>
+  </svg>
+  <div class="love-text" id="loveText3">
+    最最最最最最最爱的宝宝<br>生日快乐
+  </div>
+  <div class="tap-hint">轻触任意位置继续 ♡</div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page page-pink" id="page4" onclick="goPage5()">
+  <svg class="heart-bg" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200 320 C200 320 30 210 30 110 C30 55 75 20 120 20 C155 20 185 40 200 65 C215 40 245 20 280 20 C325 20 370 55 370 110 C370 210 200 320 200 320Z" fill="#d4477a"/>
+    <path d="M200 285 C200 285 60 190 60 108 C60 68 92 42 125 42 C157 42 182 60 200 85 C218 60 243 42 275 42 C308 42 340 68 340 108 C340 190 200 285 200 285Z" fill="#e87aaa"/>
+    <circle cx="140" cy="90" r="22" fill="#f0a0c0" opacity="0.6"/>
+  </svg>
+  <div class="love-text" id="loveText4">
+    虽然你不在我身边<br>
+    但是你要记住<br>
+    我最爱的就是你<br>
+    我也是你最爱的人<br>
+    我们要好好爱下去
+  </div>
+  <div class="tap-hint">轻触任意位置继续 ♡</div>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page page-pink" id="page5" onclick="goPage6()">
+  <svg class="heart-bg" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200 320 C200 320 30 210 30 110 C30 55 75 20 120 20 C155 20 185 40 200 65 C215 40 245 20 280 20 C325 20 370 55 370 110 C370 210 200 320 200 320Z" fill="#d4477a"/>
+    <path d="M200 285 C200 285 60 190 60 108 C60 68 92 42 125 42 C157 42 182 60 200 85 C218 60 243 42 275 42 C308 42 340 68 340 108 C340 190 200 285 200 285Z" fill="#e87aaa"/>
+    <circle cx="140" cy="90" r="22" fill="#f0a0c0" opacity="0.6"/>
+  </svg>
+  <div class="love-text" id="loveText5" style="font-size:clamp(1.2rem,5.5vw,1.75rem);">
+    等你回来了我们就不用<br>
+    打视频哭哭了<br>
+    我们要好好一起过生日<br>
+    一起去上海<br>
+    你还欠我一顿岛国饭呢<br>
+    你快回来呀！
+  </div>
+  <div class="tap-hint">轻触任意位置继续 ♡</div>
+</div>
+
+<!-- PAGE 6 -->
+<div class="page page-pink" id="page6">
+  <svg class="heart-bg" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200 320 C200 320 30 210 30 110 C30 55 75 20 120 20 C155 20 185 40 200 65 C215 40 245 20 280 20 C325 20 370 55 370 110 C370 210 200 320 200 320Z" fill="#d4477a"/>
+    <path d="M200 285 C200 285 60 190 60 108 C60 68 92 42 125 42 C157 42 182 60 200 85 C218 60 243 42 275 42 C308 42 340 68 340 108 C340 190 200 285 200 285Z" fill="#e87aaa"/>
+    <circle cx="140" cy="90" r="22" fill="#f0a0c0" opacity="0.6"/>
+  </svg>
+  <div class="love-text" id="loveText6">
+    没了！
+  </div>
+</div>
+
+<script>
+  function checkPage1() {
+    var val = document.getElementById('input1').value.trim();
+    if (val === '柴袁文') {
+      document.getElementById('page1').classList.remove('active');
+      document.getElementById('page2').classList.add('active');
+    } else {
+      var err = document.getElementById('err1');
+      err.textContent = '答案不对哦，再想想 ♡';
+      document.getElementById('input1').value = '';
+    }
+  }
+
+  document.getElementById('input1').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkPage1();
+  });
+
+  function checkChoice(opt) {
+    var btns = document.querySelectorAll('.choice-btn');
+    btns.forEach(function(b) { b.classList.remove('wrong','correct'); });
+
+    if (opt === 'D') {
+      document.getElementById('choiceD').classList.add('correct');
+      setTimeout(function() {
+        document.getElementById('page2').classList.remove('active');
+        var p3 = document.getElementById('page3');
+        p3.classList.add('active');
+        setTimeout(function() {
+          document.getElementById('loveText3').classList.add('shown');
+        }, 300);
+      }, 700);
+    } else {
+      document.getElementById('choice' + opt).classList.add('wrong');
+      document.getElementById('err2').textContent = '再想想哦～她心里你很特别的 ♡';
+      setTimeout(function() {
+        document.getElementById('choice' + opt).classList.remove('wrong');
+        document.getElementById('err2').textContent = '';
+      }, 1300);
+    }
+  }
+
+  function goPage4() {
+    document.getElementById('page3').classList.remove('active');
+    var p4 = document.getElementById('page4');
+    p4.classList.add('active');
+    setTimeout(function() {
+      document.getElementById('loveText4').classList.add('shown');
+    }, 300);
+  }
+
+  function goPage5() {
+    document.getElementById('page4').classList.remove('active');
+    var p5 = document.getElementById('page5');
+    p5.classList.add('active');
+    setTimeout(function() {
+      document.getElementById('loveText5').classList.add('shown');
+    }, 300);
+  }
+
+  function goPage6() {
+    document.getElementById('page5').classList.remove('active');
+    var p6 = document.getElementById('page6');
+    p6.classList.add('active');
+    setTimeout(function() {
+      document.getElementById('loveText6').classList.add('shown');
+    }, 300);
+  }
+</script>
+</body>
+</html>
